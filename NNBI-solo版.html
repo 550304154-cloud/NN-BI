@@ -1267,6 +1267,469 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ================= Quiet executive report reset ================= */
+        :root {
+            --bg-body: #EEF2F6;
+            --bg-surface: #FFFFFF;
+            --text-strong: #07101F;
+            --text-base: #29364A;
+            --text-muted: #6A7485;
+            --border-base: rgba(99, 116, 139, 0.18);
+            --border-strong: rgba(71, 85, 105, 0.26);
+            --brand-accent: #0F4C81;
+            --brand-cyan: #197A8C;
+            --brand-amber: #A86D1D;
+            --success-bg: rgba(17, 111, 82, 0.09);
+            --success-text: #116F52;
+            --danger-bg: rgba(168, 109, 29, 0.11);
+            --danger-text: #8A5818;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 16px 44px rgba(23, 37, 56, 0.08);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
+        }
+
+        body {
+            background:
+                linear-gradient(180deg, #F7F9FC 0%, #EEF2F6 100%);
+        }
+
+        body::before {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.018) 1px, transparent 1px);
+            background-size: 100% 34px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,0.60), transparent 70%);
+        }
+
+        .sidebar {
+            width: 246px;
+            background: #08111F;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: none;
+        }
+
+        .logo-box {
+            height: 86px;
+            padding: 0 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #EAF1FA;
+            color: #07101F;
+            box-shadow: none;
+        }
+
+        .logo-text {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .logo-box::after {
+            content: "管理层经营看板";
+            left: 68px;
+            bottom: 17px;
+            color: rgba(226, 232, 240, 0.46);
+            font-size: 11px;
+            letter-spacing: 0.10em;
+        }
+
+        .menu-list {
+            padding: 18px 14px;
+            gap: 3px;
+        }
+
+        .menu-item {
+            min-height: 50px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.045);
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(199, 215, 235, 0.20);
+            box-shadow: inset 2px 0 0 #C7D7EB;
+        }
+
+        .menu-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: rgba(234, 241, 250, 0.10);
+            color: #DCE7F5;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .menu-item.active .menu-icon {
+            background: #EAF1FA;
+            color: #07101F;
+            box-shadow: none;
+        }
+
+        .menu-title {
+            color: rgba(248,250,252,0.84);
+            font-weight: 700;
+        }
+
+        .menu-sub {
+            color: rgba(203,213,225,0.44);
+        }
+
+        .main-layout {
+            background: transparent;
+        }
+
+        .top-header {
+            height: 74px;
+            margin: 22px 30px 0;
+            padding: 0 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.72);
+            background: rgba(255,255,255,0.82);
+            box-shadow: 0 12px 36px rgba(23, 37, 56, 0.06);
+        }
+
+        .header-title {
+            font-size: 23px;
+            font-weight: 850;
+        }
+
+        .header-subtitle {
+            color: #53647A;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
+        .btn-export {
+            height: 38px;
+            border-radius: 7px;
+            background: #07101F;
+            box-shadow: none;
+        }
+
+        .toolbar {
+            margin: 0 30px;
+            padding: 18px 0 16px;
+        }
+
+        .segment-control,
+        .quick-filters,
+        .date-inputs input {
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.78);
+            background: rgba(255,255,255,0.72);
+            box-shadow: 0 8px 24px rgba(23, 37, 56, 0.05);
+        }
+
+        .segment-control button,
+        .quick-filters button {
+            border-radius: 6px;
+        }
+
+        .quick-filters button.active,
+        .segment-control button.active {
+            background: #0B1730;
+            box-shadow: none;
+        }
+
+        .content-scroll {
+            padding: 0 44px 72px;
+        }
+
+        .dashboard-wrapper {
+            max-width: 1500px;
+        }
+
+        .dashboard-hero {
+            min-height: 238px;
+            margin: 10px 0 0;
+            padding: 34px 38px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+            gap: 40px;
+            align-items: center;
+            color: #07101F;
+            border-radius: 10px 10px 0 0;
+            border: 1px solid rgba(255,255,255,0.82);
+            border-bottom: 0;
+            background:
+                linear-gradient(90deg, rgba(255,255,255,0.98), rgba(255,255,255,0.90)),
+                linear-gradient(135deg, rgba(15,76,129,0.08), transparent 45%);
+            box-shadow: 0 18px 50px rgba(23, 37, 56, 0.08);
+        }
+
+        .dashboard-hero::before,
+        .dashboard-hero::after {
+            display: none;
+        }
+
+        .hero-copy {
+            max-width: 780px;
+        }
+
+        .hero-label {
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: #53647A;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .hero-title {
+            margin-top: 20px;
+            color: #07101F;
+            font-size: 44px;
+            line-height: 1.05;
+            font-weight: 900;
+        }
+
+        .hero-sub {
+            margin-top: 18px;
+            max-width: 620px;
+            color: #53647A;
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+        .hero-meta {
+            display: grid;
+            gap: 0;
+            border-left: 1px solid rgba(83, 100, 122, 0.20);
+            padding-left: 30px;
+        }
+
+        .hero-pill {
+            min-height: 68px;
+            padding: 15px 0;
+            border: 0;
+            border-bottom: 1px solid rgba(83, 100, 122, 0.16);
+            border-radius: 0;
+            background: transparent;
+            backdrop-filter: none;
+        }
+
+        .hero-pill:last-child {
+            border-bottom: 0;
+        }
+
+        .hero-pill b {
+            color: #07101F;
+            font-size: 34px;
+            font-weight: 900;
+        }
+
+        .hero-pill span {
+            color: #6A7485;
+            max-width: 160px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .exec-summary {
+            margin: 0 0 34px;
+            display: grid;
+            grid-template-columns: 1.25fr repeat(3, minmax(0, 1fr));
+            gap: 0;
+            border: 1px solid rgba(255,255,255,0.82);
+            border-top: 1px solid rgba(83, 100, 122, 0.14);
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.88);
+            box-shadow: 0 20px 54px rgba(23, 37, 56, 0.07);
+        }
+
+        .exec-brief,
+        .exec-note {
+            min-height: 148px;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            background: transparent;
+            padding: 24px 28px;
+        }
+
+        .exec-brief {
+            border-left: 0;
+            border-right: 1px solid rgba(83, 100, 122, 0.14);
+        }
+
+        .exec-note {
+            border-right: 1px solid rgba(83, 100, 122, 0.14);
+        }
+
+        .exec-note:last-child {
+            border-right: 0;
+        }
+
+        .exec-note.up,
+        .exec-note.down,
+        .exec-note.neu {
+            border-top: 0;
+        }
+
+        .exec-kicker,
+        .section-kicker {
+            color: #0F4C81;
+            font-size: 12px;
+            letter-spacing: 0.06em;
+        }
+
+        .exec-headline {
+            margin-top: 12px;
+            font-size: 24px;
+            line-height: 1.28;
+            font-weight: 900;
+        }
+
+        .exec-copy {
+            color: #5D6A7C;
+            font-size: 13px;
+        }
+
+        .exec-note-title {
+            color: #6A7485;
+            font-size: 12px;
+            letter-spacing: 0.04em;
+        }
+
+        .exec-note-value {
+            margin-top: 18px;
+            font-size: 32px;
+            font-weight: 900;
+        }
+
+        .exec-note-desc {
+            color: #617084;
+        }
+
+        .section-title {
+            margin: 30px 0 16px;
+            min-height: 36px;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .section-title::before {
+            width: 3px;
+            height: 24px;
+            border-radius: 2px;
+            background: #0F4C81;
+            box-shadow: none;
+        }
+
+        .section-title .section-meta {
+            color: #7B8797;
+            font-size: 12px;
+            letter-spacing: 0.06em;
+        }
+
+        .kpi-grid {
+            gap: 14px;
+            margin-bottom: 34px;
+        }
+
+        .kpi-card {
+            min-height: 168px;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.86);
+            background: rgba(255,255,255,0.86);
+            box-shadow: 0 14px 38px rgba(23, 37, 56, 0.06);
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 18px 44px rgba(23, 37, 56, 0.09);
+            transform: translateY(-1px);
+        }
+
+        .kpi-card::before {
+            color: rgba(83, 100, 122, 0.28);
+            right: 18px;
+            top: 18px;
+        }
+
+        .kpi-name {
+            color: #5D6A7C;
+            font-weight: 800;
+        }
+
+        .kpi-val {
+            font-size: 34px;
+            font-weight: 900;
+        }
+
+        .kpi-trend {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 999px;
+        }
+
+        .sparkline-container {
+            height: 36px;
+            opacity: 0.72;
+        }
+
+        .chart-grid {
+            gap: 16px;
+        }
+
+        .chart-card {
+            min-height: 390px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.86);
+            background: rgba(255,255,255,0.88);
+            box-shadow: 0 16px 44px rgba(23, 37, 56, 0.07);
+        }
+
+        .chart-card::after {
+            display: none;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .chart-desc {
+            color: #657287;
+        }
+
+        .chart-insight {
+            background: #F4F7FA;
+            border: 1px solid rgba(99, 116, 139, 0.14);
+            color: #526074;
+        }
+
+        @media (max-width: 1280px) {
+            .dashboard-hero,
+            .exec-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-meta {
+                border-left: 0;
+                border-top: 1px solid rgba(83, 100, 122, 0.16);
+                padding-left: 0;
+                padding-top: 18px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1284,7 +1747,7 @@
         <header class="top-header">
             <div class="header-title-box">
                 <div class="header-title" id="headerTitle">商业化大盘</div>
-                <div class="header-subtitle">GLOBAL BUSINESS INTELLIGENCE</div>
+                <div class="header-subtitle">管理层经营汇报视图</div>
             </div>
             <div class="header-right">
                 <button class="btn-export" onclick="exportData()">
@@ -1343,8 +1806,8 @@
         const C = (t, d, cls, ty, x, sd) => ({ t, d, cls, ty, x, sd });
 
         const EMOJI_ICONS = {
-            m1: '💼', m2: '💬', m3: '🎯', m4: '🏆', 
-            m5: '📈', m6: '⚡', m7: '🌐', m8: '👥'
+            m1: '商', m2: '社', m3: '活', m4: '赛',
+            m5: '宏', m6: '雷', m7: '获', m8: '客'
         };
 
         const businessData = [
@@ -1557,9 +2020,9 @@
                 h += `
                     <section class="dashboard-hero">
                         <div class="hero-copy">
-                            <div class="hero-label">BOARD REPORT · ${t.name}</div>
+                            <div class="hero-label">经营汇报 · ${t.name}</div>
                             <div class="hero-title">${t.title}</div>
-                            <div class="hero-sub">面向管理层的经营汇报视图：先给结论，再给证据，用核心指标、过程指标和交叉分析串起业务判断。</div>
+                            <div class="hero-sub">本页聚焦管理层最关心的三件事：本周期结果、增长来源、需要介入的风险点。</div>
                         </div>
                         <div class="hero-meta">
                             <div class="hero-pill"><b>${summary.primary.v}</b><span>${summary.primary.n}</span></div>
@@ -1569,7 +2032,7 @@
                     </section>
                     <section class="exec-summary">
                         <div class="exec-brief">
-                            <div class="exec-kicker">EXECUTIVE TAKEAWAY</div>
+                            <div class="exec-kicker">关键结论</div>
                             <div class="exec-headline">${summary.primary.n} 当前为 ${summary.primary.v}，${summary.momentum.n} ${summary.momentum.t}。</div>
                             <div class="exec-copy">本页适合用于汇报开场：先明确本周期经营状态，再下钻到增长来源、效率变化与需要管理层拍板的风险项。</div>
                         </div>
@@ -1615,18 +2078,18 @@
                 };
 
                 if (p0Kpis.length > 0) {
-                    h += `${renderSectionTitle('核心战略指标', 'BOARD KPI · 优先汇报')}<div class="kpi-grid">`;
+                    h += `${renderSectionTitle('核心战略指标', '优先汇报')}<div class="kpi-grid">`;
                     p0Kpis.forEach(k => h += renderCard(k));
                     h += `</div>`;
                 }
 
                 if (otherKpis.length > 0) {
-                    h += `${renderSectionTitle('业务过程指标', 'PROCESS KPI · 解释原因')}<div class="kpi-grid">`;
+                    h += `${renderSectionTitle('业务过程指标', '解释原因')}<div class="kpi-grid">`;
                     otherKpis.forEach(k => h += renderCard(k));
                     h += `</div>`;
                 }
 
-                h += `${renderSectionTitle('交叉分析矩阵', 'EVIDENCE MATRIX · 支撑决策')}<div class="chart-grid">`;
+                h += `${renderSectionTitle('交叉分析矩阵', '支撑决策')}<div class="chart-grid">`;
                 t.charts.forEach((c, ci) => {
                     c.cid = `${t.id}_c_${ci}`;
                     h += `<div class="chart-card ${c.cls}">
