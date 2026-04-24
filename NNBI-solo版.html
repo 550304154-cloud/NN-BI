@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NN Data BI - 商业高管决策大盘</title>
+    <!-- 引入 Inter 字体以提升顶级商业 SaaS 高级感 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        /* ================= 顶级商业 SaaS 视觉规范 (对标 Vercel / Stripe / Tableau) ================= */
+        :root {
+            /* 背景色 - 极简冷灰与纯白面板 */
+            --bg-body: #F8FAFC;         /* Slate 50 - 极浅冷灰底色 */
+            --bg-surface: #FFFFFF;      /* 纯白面板 */
+            --bg-hover: #F1F5F9;        /* Slate 100 */
+            
+            /* 文字颜色 - 摒弃纯黑，使用高级深灰 */
+            --text-strong: #0F172A;     /* Slate 900 - 极深灰（主标题/数值） */
+            --text-base: #334155;       /* Slate 700 - 正文 */
+            --text-muted: #64748B;      /* Slate 500 - 辅助/注释 */
+            
+            /* 边框与分割线 - 极其细腻的灰度 */
+            --border-subtle: #F1F5F9;   /* Slate 100 */
+            --border-base: #E2E8F0;     /* Slate 200 */
+            --border-strong: #CBD5E1;   /* Slate 300 */
+            
+            /* 品牌色 - 沉稳内敛的深色系与商业蓝 */
+            --brand-primary: #0F172A;   /* 极简高级：主色用深灰黑 */
+            --brand-accent: #2563EB;    /* 强调色：商业蓝 */
+            --brand-light: #F1F5F9;     /* 激活态底色 */
+            
+            /* 状态色 - 低饱和度、不刺眼 */
+            --success-bg: #DCFCE7;      /* Green 50 */
+            --success-text: #166534;    /* Green 800 */
+            --danger-bg: #FEE2E2;       /* Red 50 */
+            --danger-text: #991B1B;     /* Red 800 */
+            
+            /* 阴影 - 极其克制、干净的 SaaS 级弥散阴影 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-float: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            
+            /* 圆角 - 商业感偏向硬朗克制的圆角，摒弃大圆角 */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-base); 
+            height: 100vh; 
+            display: flex; 
+            overflow: hidden; 
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- 1. 侧边栏 (极简、无渐变、纯净) --- */
+        .sidebar { 
+            width: 240px; 
+            background: var(--bg-surface); 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+            z-index: 100; 
+            border-right: 1px solid var(--border-base); 
+        }
+        .logo-box { 
+            height: 64px; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 20px; 
+            gap: 10px; 
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .logo-icon { 
+            width: 28px; height: 28px; 
+            background: var(--text-strong); 
+            border-radius: 6px; 
+            display: flex; align-items: center; justify-content: center; 
+            color: #fff; font-weight: 800; font-size: 14px; 
+        }
+        .logo-text { font-size: 16px; font-weight: 700; color: var(--text-strong); letter-spacing: -0.3px;}
+        
+        /* 菜单项 */
+        .menu-list { flex: 1; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px;}
+        .menu-item { 
+            padding: 10px 12px; 
+            border-radius: var(--radius-sm); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            background: transparent;
+            border: none;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        .menu-item:hover { background: var(--bg-hover); }
+        .menu-item.active { 
+            background: var(--brand-light);
+        }
+        .menu-icon {
+            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.6;
+            filter: grayscale(100%);
+            transition: all 0.2s;
+        }
+        .menu-item.active .menu-icon { opacity: 1; filter: grayscale(0%); }
+        .menu-text { display: flex; flex-direction: column; }
+        .menu-title { font-size: 14px; font-weight: 500; color: var(--text-base); transition: 0.2s;}
+        .menu-item.active .menu-title { color: var(--text-strong); font-weight: 600; }
+        
+        /* --- 主体右侧区域 --- */
+        .main-layout { flex: 1; display: flex; flex-direction: column; overflow: hidden;}
+        
+        /* 顶部 Header */
+        .top-header { 
+            height: 64px; 
+            background: var(--bg-surface); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 32px; 
+            border-bottom: 1px solid var(--border-base); 
+            flex-shrink: 0; 
+            z-index: 50;
+        }
+        .header-title-box { display: flex; align-items: baseline; gap: 12px; }
+        .header-title { font-size: 18px; font-weight: 600; color: var(--text-strong); letter-spacing: -0.5px;}
+        .header-subtitle { font-size: 13px; color: var(--text-muted); font-weight: 400; }
+        
+        .btn-export { 
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-strong); 
+            color: var(--text-strong); 
+            padding: 0 14px; 
+            height: 32px; 
+            border-radius: var(--radius-sm); 
+            font-size: 13px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            transition: all 0.15s; 
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-export:hover { background: var(--bg-hover); border-color: var(--text-strong); }
+
+        /* 控制台 */
+        .toolbar { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 16px 32px; 
+            background: var(--bg-body); 
+            flex-shrink: 0; 
+            z-index: 40;
+        }
+        .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 16px; }
+
+        .segment-control { display: flex; background: var(--border-base); border-radius: var(--radius-sm); padding: 3px; }
+        .segment-control button { border: none; background: transparent; padding: 6px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-radius: 4px; transition: 0.15s; outline: none;}
+        .segment-control button:hover { color: var(--text-strong); }
+        .segment-control button.active { background: var(--bg-surface); color: var(--text-strong); box-shadow: var(--shadow-sm); font-weight: 600;}
+
+        .quick-filters { display: flex; gap: 4px; border-right: 1px solid var(--border-strong); padding-right: 16px;}
+        .quick-filters button { border: 1px solid transparent; background: transparent; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--text-base); cursor: pointer; border-radius: var(--radius-sm); transition: 0.15s;}
+        .quick-filters button:hover { background: var(--border-base); color: var(--text-strong); }
+        .quick-filters button.active { background: var(--text-strong); color: var(--bg-surface); font-weight: 500;}
+
+        .date-inputs { display: flex; align-items: center; gap: 8px; }
+        .date-inputs input { background: var(--bg-surface); border: 1px solid var(--border-strong); padding: 0 10px; height: 32px; border-radius: var(--radius-sm); outline: none; font-size: 13px; font-weight: 500; color: var(--text-strong); cursor: pointer; font-family: inherit;}
+        .date-inputs input:focus { border-color: var(--text-strong); box-shadow: 0 0 0 2px var(--border-base); }
+        .date-inputs span { color: var(--text-muted); font-size: 13px;}
+
+        /* --- 画布区 --- */
+        .content-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 32px 60px 32px; position: relative; scroll-behavior: smooth;}
+        .content-scroll::-webkit-scrollbar { width: 6px; }
+        .content-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+        
+        .dashboard-wrapper { display: none; animation: fadeIn 0.3s ease; }
+        .dashboard-wrapper.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { font-size: 15px; font-weight: 600; color: var(--text-strong); margin: 16px 0 16px 0; display: flex; align-items: center; gap: 8px;}
+
+        /* ================= KPI 卡片 (高级平铺风) ================= */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        
+        .kpi-card { 
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-base); 
+            border-radius: var(--radius-md); 
+            padding: 20px;
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            min-height: 140px;
+        }
+        .kpi-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-strong); z-index: 10;}
+        
+        .kpi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;}
+        .kpi-name-box { display: flex; align-items: center; gap: 6px; position: relative;}
+        .kpi-name { font-size: 13px; font-weight: 500; color: var(--text-muted);}
+        
+        .info-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center;}
+        .info-icon { display: flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: var(--border-subtle); color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: help;}
+        .info-icon:hover { background: var(--border-base); color: var(--text-strong); }
+        
+        .tooltip-box { visibility: hidden; opacity: 0; background: var(--text-strong); color: var(--bg-surface); border-radius: var(--radius-sm); padding: 8px 12px; position: absolute; top: calc(100% + 6px); left: 0; width: max-content; max-width: 240px; font-size: 12px; line-height: 1.5; font-weight: 400; transition: 0.15s; z-index: 999999; box-shadow: var(--shadow-float); pointer-events: none;}
+        .tooltip-box b { color: #fff; font-size: 13px; display: block; margin-bottom: 2px; font-weight: 600; }
+        .info-wrapper:hover .tooltip-box { visibility: visible; opacity: 1;}
+        
+        .kpi-main { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px;}
+        /* 数值采用无衬线高对比度字体 */
+        .kpi-val { font-size: 28px; font-weight: 700; color: var(--text-strong); letter-spacing: -0.5px; line-height: 1;}
+        
+        .kpi-trend { font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 2px;}
+        .kpi-trend.up { background: var(--success-bg); color: var(--success-text); }
+        .kpi-trend.down { background: var(--danger-bg); color: var(--danger-text); }
+        .kpi-trend.neu { background: var(--border-subtle); color: var(--text-muted); }
+        
+        /* 极其收敛的趋势图，融入卡片底部 */
+        .sparkline-container { height: 35px; width: 100%; margin-top: auto; opacity: 0.8;}
+        .kpi-card:hover .sparkline-container { opacity: 1;}
+        .kpi-sparkline { height: 100%; width: 100%;}
+
+        /* ================= 图表矩阵 ================= */
+        .chart-grid { display: grid; grid-template-columns: repeat(24, 1fr); gap: 16px; margin-bottom: 32px;}
+        .col-8 { grid-column: span 8; }   
+        .col-12 { grid-column: span 12; } 
+        .col-16 { grid-column: span 16; } 
+        .col-24 { grid-column: span 24; } 
+
+        .chart-card { 
+            background: var(--bg-surface); 
+            border-radius: var(--radius-md); 
+            padding: 24px; 
+            box-shadow: var(--shadow-sm); 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 380px; 
+            border: 1px solid var(--border-base); 
+            position: relative; 
+        }
+        
+        .chart-header { margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px;}
+        .chart-title { font-size: 15px; font-weight: 600; color: var(--text-strong); display: flex; align-items: center;}
+        .chart-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4;}
+        .chart-container { width: 100%; flex: 1; min-height: 280px; position: relative; z-index: 2;}
+        
+        .echarts-tooltip { z-index: 99999 !important; background-color: var(--bg-surface) !important; border: 1px solid var(--border-base) !important; color: var(--text-base) !important; box-shadow: var(--shadow-float) !important; border-radius: var(--radius-sm) !important; font-family: inherit !important; }
+
+        /* ================= Executive BI visual layer ================= */
+        :root {
+            --bg-body: #EEF3F8;
+            --bg-surface: rgba(255, 255, 255, 0.92);
+            --bg-hover: rgba(37, 99, 235, 0.08);
+            --text-strong: #07111F;
+            --text-base: #243247;
+            --text-muted: #718096;
+            --border-subtle: rgba(148, 163, 184, 0.14);
+            --border-base: rgba(148, 163, 184, 0.28);
+            --border-strong: rgba(99, 116, 139, 0.36);
+            --brand-primary: #07111F;
+            --brand-accent: #1769FF;
+            --brand-cyan: #06B6D4;
+            --brand-emerald: #10B981;
+            --brand-light: rgba(23, 105, 255, 0.12);
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --success-text: #047857;
+            --danger-bg: rgba(239, 68, 68, 0.11);
+            --danger-text: #B91C1C;
+            --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 18px 44px rgba(15, 23, 42, 0.10);
+            --shadow-float: 0 24px 70px rgba(7, 17, 31, 0.18);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 18% -10%, rgba(23, 105, 255, 0.18), transparent 34%),
+                linear-gradient(135deg, #F7FAFC 0%, #E8EEF6 50%, #F6F8FB 100%);
+        }
+
+        .sidebar {
+            width: 256px;
+            background: linear-gradient(180deg, #07111F 0%, #0B1728 54%, #101B2D 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 18px 0 50px rgba(7, 17, 31, 0.16);
+        }
+
+        .logo-box {
+            height: 72px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0 22px;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #BFD7FF 100%);
+            color: #07111F;
+            box-shadow: 0 12px 28px rgba(23, 105, 255, 0.24);
+        }
+
+        .logo-text {
+            color: #FFFFFF;
+            font-size: 17px;
+            letter-spacing: 0;
+        }
+
+        .menu-list { padding: 18px 14px; gap: 6px; }
+
+        .menu-item {
+            min-height: 48px;
+            color: rgba(255, 255, 255, 0.72);
+            border: 1px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .menu-item.active {
+            background: linear-gradient(135deg, rgba(23, 105, 255, 0.24), rgba(6, 182, 212, 0.11));
+            border-color: rgba(125, 179, 255, 0.28);
+            box-shadow: inset 3px 0 0 #49B6FF, 0 14px 30px rgba(0, 0, 0, 0.16);
+        }
+
+        .menu-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            opacity: 1;
+            filter: none;
+            font-size: 15px;
+        }
+
+        .menu-item.active .menu-icon {
+            background: rgba(255, 255, 255, 0.16);
+            box-shadow: 0 8px 20px rgba(23, 105, 255, 0.20);
+        }
+
+        .menu-title { color: rgba(255, 255, 255, 0.74); font-size: 14px; }
+        .menu-item.active .menu-title { color: #FFFFFF; }
+        .menu-sub { color: rgba(226, 232, 240, 0.48); font-size: 11px; margin-top: 2px; }
+
+        .main-layout {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.22));
+        }
+
+        .top-header {
+            height: 72px;
+            background: rgba(255, 255, 255, 0.76);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+        }
+
+        .header-title { font-size: 20px; font-weight: 750; }
+        .header-subtitle {
+            color: #1769FF;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .btn-export {
+            height: 36px;
+            background: #07111F;
+            color: #FFFFFF;
+            border-color: #07111F;
+            box-shadow: 0 14px 30px rgba(7, 17, 31, 0.20);
+        }
+
+        .btn-export:hover {
+            background: #1769FF;
+            border-color: #1769FF;
+            transform: translateY(-1px);
+        }
+
+        .toolbar {
+            padding: 18px 32px 14px;
+            background: transparent;
+        }
+
+        .segment-control,
+        .quick-filters,
+        .date-inputs input {
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.26);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+            backdrop-filter: blur(14px);
+        }
+
+        .quick-filters { border-right: 0; padding: 3px; border-radius: var(--radius-sm); gap: 2px; }
+        .quick-filters button.active,
+        .segment-control button.active {
+            background: linear-gradient(135deg, #07111F, #173A72);
+            color: #FFFFFF;
+            box-shadow: 0 10px 22px rgba(7, 17, 31, 0.18);
+        }
+
+        .content-scroll { padding: 0 32px 64px; }
+
+        .dashboard-hero {
+            margin: 4px 0 22px;
+            min-height: 128px;
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            color: #FFFFFF;
+            background:
+                linear-gradient(120deg, rgba(7, 17, 31, 0.96), rgba(18, 50, 94, 0.92) 58%, rgba(23, 105, 255, 0.76)),
+                radial-gradient(circle at 82% 20%, rgba(6, 182, 212, 0.45), transparent 32%);
+            box-shadow: 0 30px 80px rgba(7, 17, 31, 0.20);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .dashboard-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: linear-gradient(90deg, transparent, #000 40%, #000);
+            pointer-events: none;
+        }
+
+        .hero-copy { position: relative; z-index: 1; }
+        .hero-label { font-size: 12px; font-weight: 700; color: #7DD3FC; letter-spacing: 0.12em; margin-bottom: 10px; }
+        .hero-title { font-size: 30px; line-height: 1.12; font-weight: 800; letter-spacing: 0; }
+        .hero-sub { margin-top: 10px; color: rgba(226, 232, 240, 0.76); font-size: 13px; }
+        .hero-meta {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(82px, 1fr));
+            gap: 10px;
+            min-width: 330px;
+        }
+        .hero-pill {
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+        }
+        .hero-pill b { display: block; font-size: 18px; color: #FFFFFF; }
+        .hero-pill span { display: block; margin-top: 3px; font-size: 11px; color: rgba(226, 232, 240, 0.68); }
+
+        .section-title {
+            margin: 20px 0 14px;
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 8px;
+            height: 18px;
+            border-radius: 4px;
+            background: linear-gradient(180deg, #1769FF, #06B6D4);
+            box-shadow: 0 8px 18px rgba(23, 105, 255, 0.25);
+        }
+
+        .kpi-grid { gap: 18px; margin-bottom: 30px; }
+
+        .kpi-card {
+            min-height: 152px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 251, 255, 0.90));
+            box-shadow: 0 18px 46px rgba(15, 23, 42, 0.07);
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 3px;
+            background: linear-gradient(90deg, #1769FF, #06B6D4);
+        }
+
+        .kpi-card.kpi-down::before { background: linear-gradient(90deg, #EF4444, #F59E0B); }
+        .kpi-card.kpi-neu::before { background: linear-gradient(90deg, #64748B, #94A3B8); }
+
+        .kpi-card:hover {
+            box-shadow: 0 28px 72px rgba(15, 23, 42, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .kpi-name { font-size: 12px; letter-spacing: 0.01em; }
+        .kpi-val { font-size: 31px; font-weight: 800; }
+        .kpi-trend { border-radius: 999px; padding: 4px 8px; }
+
+        .info-icon {
+            background: rgba(23, 105, 255, 0.09);
+            color: #1769FF;
+        }
+
+        .chart-grid { gap: 18px; }
+
+        .chart-card {
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.92));
+            box-shadow: 0 20px 54px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+
+        .chart-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 24px;
+            right: 24px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(23, 105, 255, 0.42), transparent);
+        }
+
+        .chart-title { font-size: 16px; font-weight: 750; }
+        .chart-desc { color: #6B778C; }
+
+        @media (max-width: 1280px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .col-8, .col-12, .col-16 { grid-column: span 24; }
+            .hero-meta { min-width: 280px; }
+        }
+
+        @media (max-width: 900px) {
+            body { overflow: auto; }
+            .sidebar { display: none; }
+            .main-layout { min-width: 0; }
+            .top-header, .toolbar { padding-left: 18px; padding-right: 18px; }
+            .toolbar, .toolbar-right { flex-wrap: wrap; gap: 12px; }
+            .content-scroll { padding: 0 18px 40px; }
+            .dashboard-hero { flex-direction: column; align-items: flex-start; gap: 18px; }
+            .hero-meta { width: 100%; min-width: 0; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ================= NN executive command center rebuild ================= */
+        :root {
+            --bg-body: #F3F6FA;
+            --bg-surface: rgba(255, 255, 255, 0.88);
+            --bg-hover: rgba(19, 86, 208, 0.08);
+            --text-strong: #07121F;
+            --text-base: #26364D;
+            --text-muted: #6B7890;
+            --border-subtle: rgba(148, 163, 184, 0.16);
+            --border-base: rgba(115, 132, 157, 0.24);
+            --border-strong: rgba(72, 88, 116, 0.34);
+            --brand-primary: #07121F;
+            --brand-accent: #1356D0;
+            --brand-cyan: #00A7C8;
+            --brand-emerald: #0E9F6E;
+            --brand-amber: #D79000;
+            --brand-light: rgba(19, 86, 208, 0.10);
+            --shadow-sm: 0 12px 34px rgba(25, 37, 59, 0.07);
+            --shadow-md: 0 24px 60px rgba(25, 37, 59, 0.12);
+            --shadow-float: 0 32px 90px rgba(7, 18, 31, 0.24);
+        }
+
+        body {
+            background:
+                linear-gradient(115deg, rgba(19, 86, 208, 0.12), transparent 28%),
+                linear-gradient(245deg, rgba(0, 167, 200, 0.10), transparent 30%),
+                #F3F6FA;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(7, 18, 31, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(7, 18, 31, 0.035) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,0.72), transparent 62%);
+            z-index: 0;
+        }
+
+        .sidebar,
+        .main-layout { position: relative; z-index: 1; }
+
+        .sidebar {
+            width: 268px;
+            background:
+                linear-gradient(180deg, rgba(5, 13, 24, 0.98), rgba(9, 21, 38, 0.98)),
+                linear-gradient(135deg, rgba(19, 86, 208, 0.22), transparent);
+        }
+
+        .logo-box { height: 76px; padding: 0 24px; }
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #FFFFFF, #DCEAFF 48%, #7DD3FC);
+            font-size: 16px;
+        }
+        .logo-text { font-size: 18px; }
+
+        .menu-list { padding: 20px 16px; gap: 8px; }
+        .menu-item {
+            padding: 12px;
+            border-radius: 12px;
+            min-height: 54px;
+        }
+        .menu-item.active {
+            background:
+                linear-gradient(135deg, rgba(19, 86, 208, 0.34), rgba(0, 167, 200, 0.16)),
+                rgba(255, 255, 255, 0.06);
+            border-color: rgba(143, 191, 255, 0.32);
+            box-shadow: inset 3px 0 0 #7DD3FC, 0 18px 42px rgba(0, 0, 0, 0.24);
+        }
+        .menu-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+        }
+
+        .top-header {
+            height: 76px;
+            margin: 14px 18px 0;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: 18px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-title { font-size: 22px; font-weight: 800; }
+        .header-subtitle { color: #1356D0; }
+
+        .toolbar {
+            margin: 0 18px;
+            padding: 16px 14px 14px;
+        }
+
+        .segment-control,
+        .quick-filters,
+        .date-inputs input {
+            border-color: rgba(255, 255, 255, 0.78);
+            background: rgba(255, 255, 255, 0.76);
+        }
+
+        .content-scroll { padding: 0 32px 68px; }
+
+        .dashboard-hero {
+            min-height: 152px;
+            margin: 8px 0 24px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background:
+                linear-gradient(120deg, rgba(4, 12, 23, 0.98), rgba(13, 32, 59, 0.94) 48%, rgba(19, 86, 208, 0.86)),
+                linear-gradient(35deg, transparent, rgba(0, 167, 200, 0.18));
+        }
+
+        .dashboard-hero::before {
+            content: "";
+            position: absolute;
+            right: 30px;
+            top: 24px;
+            width: 240px;
+            height: 76px;
+            border: 1px solid rgba(125, 211, 252, 0.26);
+            border-left: 0;
+            border-bottom: 0;
+            transform: skewX(-18deg);
+            opacity: 0.72;
+        }
+
+        .hero-title { font-size: 34px; }
+        .hero-pill {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .kpi-grid {
+            grid-template-columns: repeat(4, minmax(210px, 1fr));
+            gap: 20px;
+        }
+
+        .kpi-card {
+            border-radius: 16px;
+            min-height: 166px;
+            padding: 22px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.88));
+            border: 1px solid rgba(255, 255, 255, 0.76);
+            box-shadow: 0 18px 54px rgba(25, 37, 59, 0.10);
+            overflow: visible;
+        }
+
+        .kpi-card::after {
+            content: "";
+            position: absolute;
+            right: 18px;
+            bottom: 18px;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(19, 86, 208, 0.10), rgba(0, 167, 200, 0.04));
+            z-index: 0;
+        }
+
+        .kpi-card > * { position: relative; z-index: 1; }
+        .kpi-name { color: #607089; font-weight: 700; }
+        .kpi-val { font-size: 34px; letter-spacing: 0; }
+        .sparkline-container { height: 42px; }
+
+        .info-icon {
+            width: 17px;
+            height: 17px;
+            font-size: 11px;
+            font-weight: 800;
+            background: rgba(19, 86, 208, 0.11);
+            border: 1px solid rgba(19, 86, 208, 0.18);
+            color: #1356D0;
+        }
+
+        .tooltip-box { display: none; }
+
+        .bi-global-tooltip {
+            position: fixed;
+            z-index: 2147483647;
+            display: none;
+            max-width: 320px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            color: #FFFFFF;
+            background: rgba(7, 18, 31, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+            backdrop-filter: blur(16px);
+            pointer-events: none;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .bi-global-tooltip b {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #7DD3FC;
+        }
+
+        .chart-card {
+            border-radius: 16px;
+            padding: 26px;
+            border: 1px solid rgba(255, 255, 255, 0.76);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 250, 255, 0.86));
+            box-shadow: 0 22px 64px rgba(25, 37, 59, 0.11);
+        }
+
+        .chart-card::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #1356D0, #00A7C8);
+            opacity: 0.9;
+        }
+
+        .chart-title { font-size: 17px; }
+        .chart-desc { font-size: 12px; color: #65738A; }
+
+        @media (max-width: 1280px) {
+            .kpi-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+        }
+
+        /* ================= Boardroom presentation layer ================= */
+        :root {
+            --executive-ink: #06101F;
+            --executive-blue: #0B4FB3;
+            --executive-cyan: #0EA5C6;
+            --executive-gold: #B7791F;
+            --executive-green: #087F5B;
+            --executive-red: #B42318;
+            --surface-glass: rgba(255, 255, 255, 0.86);
+        }
+
+        body {
+            background:
+                linear-gradient(120deg, rgba(11, 79, 179, 0.10), transparent 34%),
+                linear-gradient(240deg, rgba(14, 165, 198, 0.09), transparent 32%),
+                linear-gradient(180deg, #F6F8FB 0%, #E9EEF5 100%);
+        }
+
+        .sidebar {
+            width: 276px;
+            background:
+                linear-gradient(180deg, rgba(4, 11, 22, 0.99), rgba(7, 19, 36, 0.98) 62%, rgba(10, 26, 48, 0.99)),
+                linear-gradient(135deg, rgba(14, 165, 198, 0.20), transparent 44%);
+        }
+
+        .logo-box {
+            height: 84px;
+            align-items: center;
+            position: relative;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .logo-box::after {
+            content: "EXECUTIVE REPORTING SUITE";
+            display: block;
+            position: absolute;
+            left: 74px;
+            bottom: 15px;
+            color: rgba(203, 213, 225, 0.50);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+        }
+
+        .menu-item {
+            border-radius: 10px;
+            min-height: 58px;
+        }
+
+        .menu-item.active {
+            background:
+                linear-gradient(135deg, rgba(11, 79, 179, 0.38), rgba(14, 165, 198, 0.14)),
+                rgba(255, 255, 255, 0.07);
+            box-shadow: inset 3px 0 0 #93C5FD, 0 20px 54px rgba(0, 0, 0, 0.28);
+        }
+
+        .main-layout {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.52), rgba(255,255,255,0.14));
+        }
+
+        .top-header {
+            margin: 18px 24px 0;
+            height: 78px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: 0 18px 54px rgba(16, 31, 55, 0.10);
+        }
+
+        .header-title-box {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+
+        .header-title {
+            font-size: 24px;
+            letter-spacing: 0;
+        }
+
+        .header-subtitle {
+            order: -1;
+            font-size: 10px;
+            color: var(--executive-blue);
+            letter-spacing: 0.18em;
+        }
+
+        .btn-export {
+            border-radius: 8px;
+            height: 40px;
+            padding: 0 16px;
+            background: linear-gradient(135deg, #06101F, #0D315D);
+        }
+
+        .toolbar {
+            margin: 0 24px;
+            padding: 18px 0 14px;
+        }
+
+        .content-scroll {
+            padding: 0 36px 76px;
+        }
+
+        .dashboard-wrapper {
+            max-width: 1480px;
+            margin: 0 auto;
+        }
+
+        .dashboard-hero {
+            min-height: 230px;
+            margin: 10px 0 22px;
+            padding: 30px 34px;
+            border-radius: 12px;
+            align-items: stretch;
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+            gap: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            background:
+                linear-gradient(118deg, rgba(3, 10, 22, 0.98), rgba(8, 27, 52, 0.97) 46%, rgba(11, 79, 179, 0.88)),
+                linear-gradient(35deg, transparent, rgba(14, 165, 198, 0.22));
+            box-shadow: 0 34px 90px rgba(8, 27, 52, 0.28);
+        }
+
+        .dashboard-hero::after {
+            opacity: 0.35;
+            background-size: 36px 36px;
+        }
+
+        .dashboard-hero::before {
+            right: 42px;
+            top: 36px;
+            width: 300px;
+            height: 96px;
+            border-color: rgba(147, 197, 253, 0.30);
+        }
+
+        .hero-copy {
+            position: relative;
+            z-index: 2;
+            max-width: 760px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .hero-label {
+            width: fit-content;
+            padding: 7px 11px;
+            border: 1px solid rgba(147, 197, 253, 0.28);
+            border-radius: 999px;
+            color: #B9D8FF;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .hero-title {
+            max-width: 760px;
+            margin-top: 18px;
+            font-size: 42px;
+            line-height: 1.08;
+            font-weight: 850;
+            letter-spacing: 0;
+        }
+
+        .hero-sub {
+            max-width: 660px;
+            margin-top: 15px;
+            color: rgba(241, 245, 249, 0.74);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .hero-meta {
+            position: relative;
+            z-index: 2;
+            min-width: 0;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            align-content: center;
+        }
+
+        .hero-pill {
+            min-height: 58px;
+            border-radius: 8px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero-pill b {
+            font-size: 28px;
+            font-weight: 850;
+        }
+
+        .hero-pill span {
+            font-size: 12px;
+            color: rgba(226, 232, 240, 0.72);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            max-width: 180px;
+            text-align: right;
+            line-height: 1.35;
+        }
+
+        .exec-summary {
+            display: grid;
+            grid-template-columns: 1.1fr repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin: 0 0 26px;
+        }
+
+        .exec-brief,
+        .exec-note {
+            position: relative;
+            overflow: hidden;
+            min-height: 154px;
+            border-radius: 10px;
+            padding: 20px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.78);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,251,255,0.84));
+            box-shadow: 0 18px 54px rgba(25, 37, 59, 0.09);
+        }
+
+        .exec-brief {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.98), rgba(246,249,255,0.88));
+            border-left: 4px solid var(--executive-blue);
+        }
+
+        .exec-kicker,
+        .section-kicker {
+            color: var(--executive-blue);
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+        }
+
+        .exec-headline {
+            margin-top: 14px;
+            color: var(--executive-ink);
+            font-size: 22px;
+            line-height: 1.28;
+            font-weight: 850;
+        }
+
+        .exec-copy {
+            margin-top: 10px;
+            color: #56657A;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .exec-note-title {
+            color: #5C6B80;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .exec-note-value {
+            margin-top: 16px;
+            color: var(--executive-ink);
+            font-size: 28px;
+            line-height: 1;
+            font-weight: 850;
+        }
+
+        .exec-note-desc {
+            margin-top: 12px;
+            color: #66758A;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .exec-note.up { border-top: 3px solid var(--executive-green); }
+        .exec-note.down { border-top: 3px solid var(--executive-gold); }
+        .exec-note.neu { border-top: 3px solid var(--executive-cyan); }
+
+        .section-title {
+            margin: 28px 0 14px;
+            min-height: 42px;
+            align-items: flex-end;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: 850;
+            letter-spacing: 0;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 4px;
+            height: 22px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--executive-blue), var(--executive-cyan));
+        }
+
+        .section-title .section-name {
+            margin-right: auto;
+        }
+
+        .section-title .section-meta {
+            color: #728197;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .kpi-grid {
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            min-height: 182px;
+            border-radius: 10px;
+            padding: 22px 22px 18px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.88));
+            box-shadow: 0 18px 48px rgba(25, 37, 59, 0.10);
+        }
+
+        .kpi-card::before {
+            content: attr(data-priority);
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            color: rgba(6, 16, 31, 0.18);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: 0.12em;
+        }
+
+        .kpi-card::after {
+            display: none;
+        }
+
+        .kpi-header {
+            padding-right: 44px;
+            min-height: 36px;
+        }
+
+        .kpi-name {
+            color: #56677F;
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .kpi-main {
+            margin-top: 8px;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+
+        .kpi-val {
+            font-size: 36px;
+            font-weight: 850;
+            color: #06101F;
+        }
+
+        .kpi-trend {
+            border-radius: 999px;
+            padding: 5px 8px;
+        }
+
+        .kpi-trend.up {
+            background: rgba(8, 127, 91, 0.11);
+            color: var(--executive-green);
+        }
+
+        .kpi-trend.down {
+            background: rgba(183, 121, 31, 0.12);
+            color: var(--executive-gold);
+        }
+
+        .sparkline-container {
+            padding-top: 8px;
+            border-top: 1px solid rgba(115, 132, 157, 0.16);
+        }
+
+        .chart-grid {
+            gap: 18px;
+        }
+
+        .chart-card {
+            min-height: 410px;
+            border-radius: 10px;
+            padding: 24px 24px 20px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,251,255,0.88));
+            box-shadow: 0 20px 56px rgba(25, 37, 59, 0.10);
+        }
+
+        .chart-card::after {
+            width: 3px;
+            background: linear-gradient(180deg, var(--executive-blue), var(--executive-cyan));
+        }
+
+        .chart-header {
+            gap: 8px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 850;
+            color: #06101F;
+        }
+
+        .chart-desc {
+            max-width: 680px;
+            color: #65758B;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .chart-insight {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #26364D;
+            background: rgba(11, 79, 179, 0.07);
+            border: 1px solid rgba(11, 79, 179, 0.10);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        @media (max-width: 1280px) {
+            .dashboard-hero,
+            .exec-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-meta {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .top-header {
+                margin: 12px 14px 0;
+            }
+
+            .toolbar {
+                margin: 0 14px;
+            }
+
+            .content-scroll {
+                padding: 0 16px 48px;
+            }
+
+            .dashboard-hero {
+                display: flex;
+                min-height: 0;
+                padding: 24px;
+            }
+
+            .hero-title {
+                font-size: 30px;
+            }
+
+            .hero-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .exec-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo-box">
+            <div class="logo-icon">N</div>
+            <div class="logo-text">NN Data BI</div>
+        </div>
+        <div class="menu-list" id="navMenu">
+            <!-- 动态渲染菜单 -->
+        </div>
+    </aside>
+
+    <div class="main-layout">
+        <header class="top-header">
+            <div class="header-title-box">
+                <div class="header-title" id="headerTitle">商业化大盘</div>
+                <div class="header-subtitle">GLOBAL BUSINESS INTELLIGENCE</div>
+            </div>
+            <div class="header-right">
+                <button class="btn-export" onclick="exportData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>导出数据</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <div class="segment-control" id="grainTabs">
+                    <button class="active" onclick="switchGrain('day', this)">日粒度</button>
+                    <button onclick="switchGrain('week', this)">周粒度</button>
+                    <button onclick="switchGrain('month', this)">月粒度</button>
+                </div>
+            </div>
+            
+            <div class="toolbar-right">
+                <div class="quick-filters" id="quickFilters">
+                    <button class="active" onclick="setDateRange('last7', this)">近 7 天</button>
+                    <button onclick="setDateRange('last14', this)">近 14 天</button>
+                    <button onclick="setDateRange('last30', this)">近 30 天</button>
+                    <button onclick="setDateRange('thisMonth', this)">本月</button>
+                </div>
+                <div class="date-inputs" id="dateInputContainer">
+                    <input type="date" id="vStart" value="2026-04-01" onchange="clearFastFilter()">
+                    <span>-</span>
+                    <input type="date" id="vEnd" value="2026-04-17" onchange="clearFastFilter()">
+                </div>
+            </div>
+        </div>
+
+        <div class="content-scroll" id="app-content"></div>
+    </div>
+
+    <script>
+        /* ========================================================================== */
+        /* [核心防崩溃保障]：最最简单、最最安全的单例变量声明，百分百杜绝 undefined！  */
+        /* ========================================================================== */
+        window.MyChartInstances = window.MyChartInstances || []; 
+        window.CurrentTimeGrain = 'day';
+        let sparkIdCounter = 0;
+        
+        const genLine = (base, isUp) => Array.from({length: 7}, (_, i) => base * (1 + (isUp ? (i*0.04 + Math.random()*0.05) : (Math.random()*0.05 - i*0.03))));
+        const arrUp = [12, 15, 18, 17, 24, 28, 35];
+        const arrDn = [35, 28, 26, 20, 18, 15, 12];
+        const arrNe = [20, 22, 21, 23, 20, 22, 21];
+
+        /* ========================================================================== */
+        /* [底层数据层]：去除了P0/P1标识的业务数据字典                                  */
+        /* ========================================================================== */
+        const K = (n, v, s, t, prio, d) => {
+            return { id: `spk_${sparkIdCounter++}`, n, v, s, t, prio, d, td: s==='up'?arrUp:(s==='down'?arrDn:arrNe) };
+        };
+        const C = (t, d, cls, ty, x, sd) => ({ t, d, cls, ty, x, sd });
+
+        const EMOJI_ICONS = {
+            m1: '💼', m2: '💬', m3: '🎯', m4: '🏆', 
+            m5: '📈', m6: '⚡', m7: '🌐', m8: '👥'
+        };
+
+        const businessData = [
+            {
+                id: 'm1', name: '商业化分析', sub: '营收与付费', title: '商业化运营决策大盘',
+                kpis: [
+                    K('全站总营收额', '3.42 M', 'up', '+5.2%', 'P0', '周期内平台产生的所有资金入账流水总和。'),
+                    K('核心付费用户', '40,531', 'up', '+5.2%', 'P0', '周期内产生充值、购买道具或权限服务的去重账号。'),
+                    K('付费渗透率(PR)', '8.4%', 'up', '+5.2%', 'P0', '付费用户数 ÷ 全站 DAU。评估整体大盘转化。'),
+                    K('单用户均收益', '¥ 7.1', 'down', '-1.5%', 'P1', '全站总营收额 ÷ 全站 DAU。反映大盘平均价值。'),
+                    K('付费用户客单价', '¥ 84.5', 'down', '-1.5%', 'P1', '全站总营收额 ÷ 商业化付费用户数。客单价核心。'),
+                    K('首次付费耗时', '4.2 天', 'down', '-1.5%', 'P1', '新用户从注册到产生首次付费的平均间隔时长。'),
+                    K('核心业务复购率', '62.5%', 'down', '-1.5%', 'P2', '当日付费过的用户，截止当前付费次数大于等于2的比例。'),
+                    K('大R流水依赖度', '55.2%', 'down', '-1.5%', 'P2', '平台头部 Top 5% 高净值付费用户，贡献的全站总营收占比。')
+                ],
+                charts: [
+                    C('全站总营收额与付费用户数联动分析', '核心切片维度：日期。双轴展示金额与绝对人数走势对比。', 'col-24', 'dualAxis', ['04-11','04-12','04-13','04-14','04-15','04-16','04-17'], [{name:'全站总营收(万元)', data:[30.1, 32.5, 31.2, 35.8, 45.1, 50.2, 48.5]}, {name:'付费用户数(人)', data:[38500, 39200, 38100, 40500, 45200, 48500, 40531]}]),
+                    C('营收层级依赖度分布', '核心切片维度：财富等级。防范流水断层风险。', 'col-8', 'pieRose', null, [{name:'V7-V9(大R)', value:225}, {name:'V4-V6(中坚)', value:75}, {name:'V1-V3(微氪)', value:30}, {name:'无等级', value:12}]),
+                    C('单用户平均收益(ARPU)终端对比', '核心切片维度：日期/客户端。评估各端商业化健康度。', 'col-16', 'barGroup', ['04-11','04-12','04-13','04-14','04-15','04-16','04-17'], [{name:'PC端ARPU', data:[8.5, 8.2, 8.8, 8.4, 9.1, 9.5, 8.9]}, {name:'移动端ARPU', data:[4.2, 4.1, 4.5, 4.2, 4.8, 5.1, 4.7]}])
+                ]
+            },
+            {
+                id: 'm2', name: 'PUBG社区', sub: '内容与互动', title: 'PUBG社区专题',
+                kpis: [
+                    K('PUBG社区DAU', '158,200', 'up', '+5.2%', 'P0', '访问PUBG社区的去重用户'),
+                    K('PUBG社区语音DAU', '112,400', 'up', '+5.2%', 'P0', '访问PUBG社区语音房的去重用户'),
+                    K('PUBG战斗DAU', '95,100', 'up', '+5.2%', 'P0', '访问PUBG社区的用户中，有游戏场次去重用户数'),
+                    K('功能渗透率', '45.2%', 'up', '+5.2%', 'P1', '各子模块使用人数 ÷ PUBG社区总活跃。'),
+                    K('PUBG长效留存率', '52.8%', 'down', '-1.5%', 'P1', '在第 N 日再次访问该社区的比例。'),
+                    K('社区关注用户数', '42,100', 'up', '+5.2%', 'P1', '社区内有效触发关注动作的用户数。'),
+                    K('绑定转化率', '85,200', 'up', '+5.2%', 'P2', '绑定战绩及角色的基建用户绝对盘。'),
+                    K('双栖活跃用户', '68,400', 'up', '+5.2%', 'P2', '同时有语音且生存的高净值用户。')
+                ],
+                charts: [
+                    C('PUBG社区三大核心盘活跃走势', '核心切片维度：社区。展示 DAU/语音DAU/战斗DAU 的联动。', 'col-24', 'multiLine', ['D1','D2','D3','D4','D5','D6','D7'], [{name:'PUBG社区DAU', data:[145, 148, 142, 155, 168, 185, 158]}, {name:'PUBG社区语音DAU', data:[105, 108, 102, 115, 122, 135, 112]}, {name:'PUBG战斗DAU', data:[85, 88, 85, 92, 105, 115, 95]}]),
+                    C('PUBG社区用户来源分布', '核心切片维度：溯源入口/新老客。', 'col-12', 'pieRose', null, [{name:'雷神内嵌页', value:45}, {name:'首页金刚区', value:30}, {name:'客户端直达', value:15}, {name:'关注列表', value:10}]),
+                    C('各功能模块渗透率横向对比', '核心切片维度：模块。寻找促活点。', 'col-12', 'bar', ['战绩查询', '找车队组队', '资讯发帖', '其他'], [{name:'渗透率(%)', data:[65.2, 45.1, 35.8, 18.2]}])
+                ]
+            },
+            {
+                id: 'm3', name: '运营活动', sub: '活动转化', title: '综合运营活动域',
+                kpis: [
+                    K('活动落地页访问', '156,000', 'up', '+5.2%', 'P0', '成功进入端内各活动落地页的去重账号数(UV)。'),
+                    K('活动任务达成数', '84,000', 'up', '+5.2%', 'P0', '实际完成活动内至少一项指定子任务的人数。'),
+                    K('裂变邀请注册数', '23,125', 'up', '+5.2%', 'P0', '绑定老用户邀请关系的新增账号数。'),
+                    K('活动专属留存率', '55.2%', 'up', '+5.2%', 'P1', '参与特定活动的用户，在后续长周期内留存比例。'),
+                    K('活动新注册用户', '15,200', 'up', '+5.2%', 'P1', '通过活动完成注册的新增账号数。'),
+                    K('活动抽奖人数', '65,000', 'down', '-1.5%', 'P1', '成功使用活动积分兑换礼包或抽奖的人数。'),
+                    K('社交传播 K因子', '1.85', 'down', '-1.5%', 'P2', '拉新数 / 分享老用户数。>1代表病毒爆发。'),
+                    K('裂变分享老用户', '12,500', 'down', '-1.5%', 'P2', '在拉新活动中成功对外分享的老用户。')
+                ],
+                charts: [
+                    C('活动落地页访问与跳出率分析', '核心切片维度：活动ID。评估导流能力与页面质量。', 'col-24', 'dualAxis', ['活动A','活动B','活动C','活动D','活动E'], [{name:'访问人数(UV)', data:[120000, 85000, 65000, 42000, 25000]}, {name:'跳出率(%)', data:[35.2, 42.1, 48.5, 55.2, 60.1]}]),
+                    C('各子任务达成绝对人数对比', '核心切片维度：活动ID/子任务。识别高门槛任务。', 'col-12', 'barH', ['日常签到','存活超1H','绑定战绩','成功拉新'], [{name:'达成人数', data:[85000, 68000, 42000, 25000]}]),
+                    C('活动抽奖人数转化漏斗', '核心切片维度：活动ID。展示 访问 -> 任务 -> 抽奖。', 'col-12', 'funnel', null, [{name:'落地页(UV)', value:100}, {name:'任务达成', value:53.8}, {name:'抽奖核销', value:41.6}])
+                ]
+            },
+            {
+                id: 'm4', name: '赛事分析', sub: '观赛与转化', title: '赛事域分析',
+                kpis: [
+                    K('赛事模块访问', '218,400', 'up', '+5.2%', 'P0', '周期内主动点击并进入赛事主会场的去重账号。'),
+                    K('内嵌直播观看', '84,120', 'up', '+5.2%', 'P0', '访问NN平台内嵌赛事直播间/播放页的去重账号。'),
+                    K('赛事参赛人数', '8,400', 'up', '+5.2%', 'P0', '组队成功且参赛账号数。'),
+                    K('大盘激增拉动', '+45,100', 'up', '+5.2%', 'P1', '赛事日对比日常，平台日活净增长差值。'),
+                    K('老玩家召回数', '32,150', 'up', '+5.2%', 'P1', '沉睡≥30天，在赛事期重新登录的人数。'),
+                    K('赛事报名人数', '12,500', 'up', '+5.2%', 'P1', '报名成功账号数。'),
+                    K('流量常驻用户', '48.2%', 'down', '-1.5%', 'P2', '仅在赛事日活跃，无比赛日不活跃的用户比例。'),
+                    K('语音房激增数', '+15,420', 'neu', '稳定', 'P2', '赛事日对比非赛事基准日，语音房净增长。')
+                ],
+                charts: [
+                    C('赛事核心三级漏斗：访问 > 报名 > 参赛', '核心切片维度：赛事ID。', 'col-16', 'bar', ['PCL官方赛','平台水友赛','网吧特权赛','表演赛'], [{name:'访问人数', data:[218400, 85000, 42000, 31000]}]),
+                    C('内嵌直播观看时段分布', '核心切片维度：赛事ID/时段。', 'col-8', 'pie_pct', null, [{name:'时段A', value:45}, {name:'时段B', value:30}, {name:'时段C', value:25}]),
+                    C('赛事老玩家召回与激增用户联动', '核心切片维度：赛事ID。', 'col-24', 'barGroup', ['D1','D2','D3','D4','D5','D6','D7'], [{name:'老玩家召回', data:[25100, 28500, 31200, 32150, 31500, 29800, 28100]}, {name:'激增净用户', data:[35100, 38500, 42000, 45100, 44500, 42100, 39500]}])
+                ]
+            },
+            {
+                id: 'm5', name: '宏观大盘', sub: '流量与留存', title: '宏观流量大盘域',
+                kpis: [
+                    K('全站日活跃(DAU)', '482,512', 'up', '+5.2%', 'P0', '自然日内，成功登录/唤醒 NN 平台的去重账号数。'),
+                    K('全站周/月活', '3.12 M', 'up', '+5.2%', 'P0', '自然周/月内，成功登录/唤醒 NN 平台的去重账号数。'),
+                    K('最高同时在线', '128,400', 'up', '+5.2%', 'P0', '平台全端同时在线人数的分钟级快照最大值。'),
+                    K('全站访问设备', '1.85 M', 'up', '+5.2%', 'P1', '周期内访问 NN 全平台的去重设备数（含未登录）。'),
+                    K('全站浏览次数(PV)', '12.4 M', 'up', '+5.2%', 'P1', '周期内全平台发生的总页面浏览及交互次数。'),
+                    K('大盘粘性指数', '15.4%', 'up', '+5.2%', 'P1', 'DAU/MAU，衡量平台流量的健康度与用户常驻意愿。'),
+                    K('全站总会话次数', '1.2 M', 'down', '-1.5%', 'P2', '用户从唤醒客户端到退出（异常断开）的独立会话数。'),
+                    K('平均同时在线', '85,100', 'up', '+5.2%', 'P2', '平台单日各时段在线人数的平均水位。')
+                ],
+                charts: [
+                    C('DAU 与大盘粘性联动趋势', '核心切片维度：客户端。', 'col-24', 'dualAxis', ['周一','周二','周三','周四','周五','周六','周日'], [{name:'日活跃(DAU)', data:[42.1, 45.2, 43.5, 52.1, 65.4, 82.1, 60.5]}, {name:'粘性指数(%)', data:[14.5, 14.8, 15.1, 15.4, 16.2, 17.5, 15.2]}]),
+                    C('全站访问设备各端分布', '核心切片维度：客户端。', 'col-8', 'pieRose', null, [{name:'PC端', value:65}, {name:'安卓端', value:20}, {name:'iOS端', value:10}, {name:'Web端', value:5}]),
+                    C('在线人数波峰监控分析', '核心切片维度：客户端/时段。', 'col-16', 'area', ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'], [{name:'最高在线(PCU)', data:[15000, 8000, 12000, 45000, 65000, 128400, 85000]}])
+                ]
+            },
+            {
+                id: 'm6', name: '雷神渠道', sub: '渠道效率', title: '雷神渠道专题域',
+                kpis: [
+                    K('内嵌页点击人数', '48,500', 'up', '+5.2%', 'P0', '产生过点击转化行为的去重账号数。'),
+                    K('雷神长效次留', '35.2%', 'down', '-1.5%', 'P0', '渠道导入用户的次日留存。'),
+                    K('内嵌页点击转化率', '22.5%', 'down', '-1.5%', 'P0', '点击人数(UV) ÷ 曝光人数(UV)。'),
+                    K('内嵌页曝光次数', '320,500', 'up', '+5.2%', 'P1', '内嵌页/Banner被成功加载及展示的总次数。'),
+                    K('内嵌页曝光人数', '215,200', 'up', '+5.2%', 'P1', '看到过雷神加速器 NN引流内嵌页的去重账号数。'),
+                    K('社区渗透人数', '15,200', 'down', '-1.5%', 'P2', '归因渠道引流，成功进入 NN 社区的去重账号数。'),
+                    K('语音房渗透人数', '18,500', 'down', '-1.5%', 'P2', '归因渠道引流，成功进入语音房的去重账号数。')
+                ],
+                charts: [
+                    C('内嵌页曝光与点击人数漏斗分析', '核心切片维度：渠道/页面位置。', 'col-24', 'barGroup', ['D1','D2','D3','D4','D5','D6','D7'], [{name:'曝光人数', data:[18.5, 19.2, 20.1, 21.5, 21.0, 19.8, 18.5]}, {name:'点击人数', data:[4.1, 4.3, 4.5, 4.8, 4.7, 4.4, 4.2]}]),
+                    C('点击转化率分布 (按页面位置)', '核心切片维度：页面位置。评估引流位质量。', 'col-12', 'barH_pct', ['首页大图Banner','加速弹窗','个人中心卡片','悬浮条'], [{name:'点击人数', data:[25000, 18000, 8500, 3500]}]),
+                    C('雷神专属跨端流失漏斗', '渠道引流的深度渗透漏斗。', 'col-12', 'funnel', null, [{name:'曝光人数', value:100}, {name:'点击人数', value:22.5}, {name:'进入语音房', value:8.5}, {name:'进入社区', value:7.1}])
+                ]
+            },
+            {
+                id: 'm7', name: '全域获客', sub: '投放与新增', title: '渠道域分析',
+                kpis: [
+                    K('新增激活设备', '720,000', 'up', '+5.2%', 'P0', '第一次打开该包体/SDK 的独立设备数。'),
+                    K('新增注册设备', '600,000', 'up', '+5.2%', 'P0', '第一次注册或登陆该包体 SDK 的设备数。'),
+                    K('下载成功设备', '985,000', 'up', '+5.2%', 'P0', '成功将安装包/文件下载至本地的独立设备数。'),
+                    K('有效曝光设备', '2.5 M', 'up', '+5.2%', 'P1', '页面/素材打开后，停留时间 ≥ 3秒的独立设备数。'),
+                    K('下载按钮点击', '1.2 M', 'up', '+5.2%', 'P1', '触发页面下载按钮点击的独立设备数。'),
+                    K('下载转化率(CTR)', '48.0%', 'up', '+5.2%', 'P1', '点击设备数 ÷ 曝光设备数。'),
+                    K('安装成功设备', '850,000', 'up', '+5.2%', 'P2', '成功在本地系统完成安装动作并上报的独立设备数。'),
+                    K('官方各入口点击', '350,000', 'up', '+5.2%', 'P2', '官方直下、各端下载中心、扫码的点击去重设备数。')
+                ],
+                charts: [
+                    C('全域买量物理转化漏斗', '核心切片维度：推广渠道。', 'col-12', 'funnel', null, [{name:'有效曝光设备', value:100}, {name:'点击下载按钮', value:48.0}, {name:'下载成功', value:39.4}, {name:'安装成功', value:34.0}, {name:'新增注册', value:24.0}]),
+                    C('新增注册设备数渠道贡献堆叠', '核心切片维度：推广渠道。各大主力渠道起伏。', 'col-12', 'stackedArea', ['D1','D2','D3','D4','D5','D6','D7'], [{name:'ASO买量', data:[120, 132, 101, 134, 90, 230, 210]}, {name:'抖音分发', data:[80, 95, 82, 75, 110, 150, 130]}, {name:'B站外链', data:[50, 45, 60, 85, 120, 180, 160]}]),
+                    C('官方各入口点击占比分布', '核心切片维度：推广渠道。', 'col-24', 'pie', null, [{name:'官方直下', value:65}, {name:'下载中心', value:20}, {name:'扫码', value:15}])
+                ]
+            },
+            {
+                id: 'm8', name: '用户圈层', sub: '分层与健康', title: '用户圈层业务分类域',
+                kpis: [
+                    K('语音活跃用户', '185,200', 'up', '+5.2%', 'P0', '周期内游戏语音连麦使用时长 ＞ 60 秒的去重账号。'),
+                    K('硬核工具使用', '328,000', 'up', '+5.2%', 'P0', '使用平台查询、加速、战绩工具 ≥ 1 次的去重账号。'),
+                    K('重度沉浸用户', '42,100', 'up', '+5.2%', 'P0', '周期内游戏语音连麦使用时长 ＞ 120 分钟的去重账号。'),
+                    K('内容浏览活跃', '320,000', 'down', '-1.5%', 'P1', '周期内浏览或访问内容社区流量 ≥ 1 条的去重账号。'),
+                    K('社区强互动用户', '84,200', 'down', '-1.5%', 'P1', '产生评论、点赞、发帖、私信、加好友 ≥ 1 次的账号。'),
+                    K('消费用户', '45,200', 'up', '+5.2%', 'P1', '周期内产生任意金额充值/付费/消费行为的用户。'),
+                    K('活动用户', '156,000', 'up', '+5.2%', 'P2', '周期内参与平台任意活动的用户。'),
+                    K('纯福利羊毛党', '8,932', 'neu', '稳定', 'P2', '仅存在领取福利行为，无内容/语音/互动等行为。')
+                ],
+                charts: [
+                    C('圈层核心业务活跃脉冲对抗', '核心切片维度：游戏/频道/模块。', 'col-24', 'multiLine', ['D1','D2','D3','D4','D5','D6','D7'], [{name:'工具使用', data:[31.5, 32.1, 32.5, 32.8, 32.5, 32.1, 31.5]}, {name:'内容浏览', data:[31.0, 31.5, 31.8, 32.0, 31.5, 31.0, 30.5]}, {name:'语音活跃', data:[17.5, 18.1, 18.4, 18.5, 18.2, 17.8, 17.5]}]),
+                    C('社区强互动分类占比', '核心切片维度：互动类型。', 'col-8', 'pieRose', null, [{name:'点赞', value:55000}, {name:'评论', value:25000}, {name:'发帖', value:15000}, {name:'加好友', value:5000}]),
+                    C('纯福利羊毛党风控趋势', '核心切片维度：活动ID。', 'col-16', 'area', ['D1','D2','D3','D4','D5','D6','D7'], [{name:'羊毛党规模', data:[8.5, 8.8, 8.9, 8.9, 8.8, 8.5, 8.2]}])
+                ]
+            }
+        ];
+
+        /* ========================================================================== */
+        /* 动态 DOM 渲染引擎                                                          */
+        /* ========================================================================== */
+        function renderApplication() {
+            const nt = document.getElementById('navMenu');
+            const mc = document.getElementById('app-content');
+            
+            if (nt.children.length === 0) {
+                businessData.forEach((t, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'menu-item ' + (i === 0 ? 'active' : ''); 
+                    btn.innerHTML = `
+                        <div class="menu-icon">${EMOJI_ICONS[t.id] || '📊'}</div>
+                        <div class="menu-text">
+                            <div class="menu-title">${t.name}</div>
+                            <div class="menu-sub">${t.sub}</div>
+                        </div>
+                    `;
+                    btn.onclick = () => switchTab(t.id, btn); 
+                    nt.appendChild(btn);
+                });
+            }
+
+            mc.innerHTML = '';
+
+            const getTrendClass = (trend) => trend.includes('+') ? 'up' : (trend.includes('-') ? 'down' : 'neu');
+            const getDirectionText = (trendClass) => trendClass === 'up' ? '正向增长' : (trendClass === 'down' ? '需要关注' : '保持稳定');
+            const getExecutiveSummary = (t, p0Kpis, otherKpis) => {
+                const primary = p0Kpis[0] || t.kpis[0];
+                const momentum = p0Kpis.find(k => getTrendClass(k.t) === 'up') || primary;
+                const risk = t.kpis.find(k => getTrendClass(k.t) === 'down') || otherKpis[0] || primary;
+                const support = p0Kpis[1] || otherKpis[0] || primary;
+                return { primary, momentum, risk, support };
+            };
+            const renderSectionTitle = (name, meta) => `
+                <div class="section-title">
+                    <span class="section-name">${name}</span>
+                    <span class="section-meta">${meta}</span>
+                </div>`;
+            const getChartInsight = (c, idx) => {
+                const cues = [
+                    '建议汇报时先看趋势斜率，再看结构变化，把异常点落到具体运营动作。',
+                    '该图用于回答“增长来自哪里”，适合与核心指标联读，判断主贡献项是否健康。',
+                    '该图用于识别资源投入优先级，重点关注高占比且波动明显的业务单元。',
+                    '该图用于管理层复盘漏斗效率，优先定位流失最大的环节。'
+                ];
+                return cues[idx % cues.length];
+            };
+
+            businessData.forEach((t, i) => {
+                const wr = document.createElement('div');
+                wr.id = t.id; 
+                wr.className = `dashboard-wrapper ${i === 0 ? 'active' : ''}`;
+                const p0Kpis = t.kpis.filter(k => k.prio === 'P0');
+                const otherKpis = t.kpis.filter(k => k.prio !== 'P0');
+                const summary = getExecutiveSummary(t, p0Kpis, otherKpis);
+                const momentumClass = getTrendClass(summary.momentum.t);
+                const riskClass = getTrendClass(summary.risk.t);
+                const supportClass = getTrendClass(summary.support.t);
+
+                let h = '';
+                h += `
+                    <section class="dashboard-hero">
+                        <div class="hero-copy">
+                            <div class="hero-label">BOARD REPORT · ${t.name}</div>
+                            <div class="hero-title">${t.title}</div>
+                            <div class="hero-sub">面向管理层的经营汇报视图：先给结论，再给证据，用核心指标、过程指标和交叉分析串起业务判断。</div>
+                        </div>
+                        <div class="hero-meta">
+                            <div class="hero-pill"><b>${summary.primary.v}</b><span>${summary.primary.n}</span></div>
+                            <div class="hero-pill"><b>${summary.momentum.t}</b><span>${getDirectionText(momentumClass)}</span></div>
+                            <div class="hero-pill"><b>${t.charts.length}</b><span>证据视图</span></div>
+                        </div>
+                    </section>
+                    <section class="exec-summary">
+                        <div class="exec-brief">
+                            <div class="exec-kicker">EXECUTIVE TAKEAWAY</div>
+                            <div class="exec-headline">${summary.primary.n} 当前为 ${summary.primary.v}，${summary.momentum.n} ${summary.momentum.t}。</div>
+                            <div class="exec-copy">本页适合用于汇报开场：先明确本周期经营状态，再下钻到增长来源、效率变化与需要管理层拍板的风险项。</div>
+                        </div>
+                        <div class="exec-note ${momentumClass}">
+                            <div class="exec-note-title">增长主引擎</div>
+                            <div class="exec-note-value">${summary.momentum.v}</div>
+                            <div class="exec-note-desc">${summary.momentum.n} ${summary.momentum.t}，建议作为本页正向结论的第一证据。</div>
+                        </div>
+                        <div class="exec-note ${riskClass}">
+                            <div class="exec-note-title">管理层关注</div>
+                            <div class="exec-note-value">${summary.risk.v}</div>
+                            <div class="exec-note-desc">${summary.risk.n} ${summary.risk.t}，需结合渠道、转化或留存图进一步定位原因。</div>
+                        </div>
+                        <div class="exec-note ${supportClass}">
+                            <div class="exec-note-title">支撑证据</div>
+                            <div class="exec-note-value">${summary.support.v}</div>
+                            <div class="exec-note-desc">${summary.support.n} 用于验证核心结论是否有稳定业务基础。</div>
+                        </div>
+                    </section>
+                `;
+
+                const renderCard = (k) => {
+                    const c = getTrendClass(k.t);
+                    return `
+                        <div class="kpi-card kpi-${c}" data-priority="${k.prio}">
+                            <div class="kpi-header">
+                                <div class="kpi-name-box">
+                                    <span class="kpi-name">${k.n}</span>
+                                    <div class="info-wrapper">
+                                        <div class="info-icon" data-title="${k.n}" data-desc="${k.d}"><span>?</span></div>
+                                        <div class="tooltip-box"><b>${k.n}</b>${k.d}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="kpi-main">
+                                <div class="kpi-val">${k.v}</div>
+                                <div class="kpi-trend ${c}">${k.t}</div>
+                            </div>
+                            <div class="sparkline-container">
+                                <div class="kpi-sparkline" id="${k.id}"></div>
+                            </div>
+                        </div>`;
+                };
+
+                if (p0Kpis.length > 0) {
+                    h += `${renderSectionTitle('核心战略指标', 'BOARD KPI · 优先汇报')}<div class="kpi-grid">`;
+                    p0Kpis.forEach(k => h += renderCard(k));
+                    h += `</div>`;
+                }
+
+                if (otherKpis.length > 0) {
+                    h += `${renderSectionTitle('业务过程指标', 'PROCESS KPI · 解释原因')}<div class="kpi-grid">`;
+                    otherKpis.forEach(k => h += renderCard(k));
+                    h += `</div>`;
+                }
+
+                h += `${renderSectionTitle('交叉分析矩阵', 'EVIDENCE MATRIX · 支撑决策')}<div class="chart-grid">`;
+                t.charts.forEach((c, ci) => {
+                    c.cid = `${t.id}_c_${ci}`;
+                    h += `<div class="chart-card ${c.cls}">
+                            <div class="chart-header">
+                                <div class="chart-title">${c.t}</div>
+                                <div class="chart-desc">${c.d}</div>
+                                <div class="chart-insight">${getChartInsight(c, ci)}</div>
+                            </div>
+                            <div class="chart-container" id="${c.cid}"></div>
+                          </div>`;
+                });
+                h += `</div>`; 
+                wr.innerHTML = h; 
+                mc.appendChild(wr);
+            });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* SaaS 极简原生级平铺日期联动                                                */
+        /* -------------------------------------------------------------------------- */
+        function switchGrain(grain, btn) { 
+            window.currentGrain = grain;
+            document.querySelectorAll('.segment-control button').forEach(b => b.classList.remove('active')); 
+            btn.classList.add('active'); 
+            renderDateInputs();
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        function renderDateInputs() {
+            const filters = document.getElementById('quickFilters');
+            const inputs = document.getElementById('dateInputContainer');
+            if(!filters || !inputs) return;
+
+            if (window.currentGrain === 'day') {
+                filters.innerHTML = `
+                    <button class="active" onclick="setDateRange('last7', this)">近 7 天</button>
+                    <button onclick="setDateRange('last14', this)">近 14 天</button>
+                    <button onclick="setDateRange('last30', this)">近 30 天</button>
+                    <button onclick="setDateRange('thisMonth', this)">本月</button>
+                `;
+                inputs.innerHTML = `
+                    <input type="date" id="vStart" value="2026-04-01" onchange="clearFastFilter()">
+                    <span>-</span>
+                    <input type="date" id="vEnd" value="2026-04-17" onchange="clearFastFilter()">
+                `;
+            } else if (window.currentGrain === 'week') {
+                filters.innerHTML = `
+                    <button class="active" onclick="setDateRange('thisWeek', this)">本周</button>
+                    <button onclick="setDateRange('lastWeek', this)">上周</button>
+                `;
+                inputs.innerHTML = `
+                    <input type="week" id="vStart" value="2026-W15" onchange="clearFastFilter()">
+                    <span>-</span>
+                    <input type="week" id="vEnd" value="2026-W16" onchange="clearFastFilter()">
+                `;
+            } else if (window.currentGrain === 'month') {
+                filters.innerHTML = `
+                    <button class="active" onclick="setDateRange('thisMonthM', this)">本月</button>
+                    <button onclick="setDateRange('lastMonthM', this)">上月</button>
+                `;
+                inputs.innerHTML = `
+                    <input type="month" id="vStart" value="2026-03" onchange="clearFastFilter()">
+                    <span>-</span>
+                    <input type="month" id="vEnd" value="2026-04" onchange="clearFastFilter()">
+                `;
+            }
+        }
+
+        function clearFastFilter() {
+            document.querySelectorAll('.quick-filters button').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function setDateRange(val, el) {
+            clearFastFilter();
+            if(el) el.classList.add('active');
+            
+            const end = new Date(), start = new Date();
+            
+            if (val === 'last7') { start.setDate(end.getDate() - 7); document.getElementById('vStart').value = start.toISOString().split('T')[0]; document.getElementById('vEnd').value = end.toISOString().split('T')[0]; }
+            else if (val === 'last14') { start.setDate(end.getDate() - 14); document.getElementById('vStart').value = start.toISOString().split('T')[0]; document.getElementById('vEnd').value = end.toISOString().split('T')[0]; }
+            else if (val === 'last30') { start.setDate(end.getDate() - 30); document.getElementById('vStart').value = start.toISOString().split('T')[0]; document.getElementById('vEnd').value = end.toISOString().split('T')[0]; }
+            else if (val === 'thisMonth') { start.setDate(1); document.getElementById('vStart').value = start.toISOString().split('T')[0]; document.getElementById('vEnd').value = end.toISOString().split('T')[0]; }
+            else if (val === 'thisWeek') { document.getElementById('vStart').value = "2026-W16"; document.getElementById('vEnd').value = "2026-W16"; }
+            else if (val === 'lastWeek') { document.getElementById('vStart').value = "2026-W15"; document.getElementById('vEnd').value = "2026-W15"; }
+            else if (val === 'thisMonthM') { document.getElementById('vStart').value = "2026-04"; document.getElementById('vEnd').value = "2026-04"; }
+            else if (val === 'lastMonthM') { document.getElementById('vStart').value = "2026-03"; document.getElementById('vEnd').value = "2026-03"; }
+        }
+
+        function exportData() {
+            const activeTabId = document.querySelector('.dashboard-wrapper.active').id;
+            const tabData = businessData.find(t => t.id === activeTabId);
+            if (!tabData) return;
+
+            let csvContent = '\uFEFF'; 
+            csvContent += `【系统导出】${tabData.title}\n\n--- 核心字典明细 ---\n指标名称,绝对数值,环比趋势,业务定义\n`;
+            tabData.kpis.forEach(k => {
+                let n = k.n.replace(/<[^>]+>/g, '').replace(/"/g, '""');
+                let v = k.v.replace(/<[^>]+>/g, '').replace(/"/g, '""');
+                let t = k.t.replace(/<[^>]+>/g, '').replace(/"/g, '""');
+                let d = k.d.replace(/<[^>]+>/g, '').replace(/"/g, '""');
+                csvContent += `"${n}","${v}","${t}","${d}"\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.download = `NN大盘数据_${tabData.name}_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function switchTab(id, btn) {
+            document.querySelectorAll('.dashboard-wrapper').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            
+            const activeWrapper = document.getElementById(id);
+            activeWrapper.classList.add('active');
+            btn.classList.add('active');
+            
+            const tabData = businessData.find(t => t.id === id);
+            if(tabData) document.getElementById('headerTitle').innerHTML = `${tabData.title}`;
+
+            setTimeout(() => { 
+                if (window.MyChartInstances && window.MyChartInstances.length > 0) {
+                    window.MyChartInstances.forEach(item => { if (item.tabId === id) item.chart.resize(); }); 
+                }
+            }, 50);
+            
+            document.querySelector('.content-scroll').scrollTo(0, 0);
+        }
+
+        function bindGlobalTooltips() {
+            let tip = document.getElementById('biGlobalTooltip');
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.id = 'biGlobalTooltip';
+                tip.className = 'bi-global-tooltip';
+                document.body.appendChild(tip);
+            }
+
+            const moveTip = (event) => {
+                const gap = 14;
+                const rect = tip.getBoundingClientRect();
+                let left = event.clientX + gap;
+                let top = event.clientY + gap;
+
+                if (left + rect.width > window.innerWidth - 12) left = event.clientX - rect.width - gap;
+                if (top + rect.height > window.innerHeight - 12) top = event.clientY - rect.height - gap;
+
+                tip.style.left = `${Math.max(12, left)}px`;
+                tip.style.top = `${Math.max(12, top)}px`;
+            };
+
+            document.querySelectorAll('.info-icon').forEach(icon => {
+                icon.addEventListener('mouseenter', event => {
+                    tip.innerHTML = `<b>${icon.dataset.title || ''}</b>${icon.dataset.desc || ''}`;
+                    tip.style.display = 'block';
+                    moveTip(event);
+                });
+                icon.addEventListener('mousemove', moveTip);
+                icon.addEventListener('mouseleave', () => {
+                    tip.style.display = 'none';
+                });
+            });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* ECharts 渲染引擎：商业高级配色 (Slate / Blue / Emerald / Indigo)           */
+        /* -------------------------------------------------------------------------- */
+        function initAllECharts() {
+            const commonOpt = {
+                color: ['#07121F', '#1356D0', '#00A7C8', '#0E9F6E', '#D79000', '#7C3AED'],
+                tooltip: { appendToBody: true, trigger: 'axis', backgroundColor: 'rgba(7,18,31,0.96)', borderColor: 'rgba(255,255,255,0.14)', borderWidth: 1, padding: [12, 14], textStyle: { color: '#F8FAFC', fontSize: 13, fontWeight: 500 }, extraCssText: 'border-radius: 12px; box-shadow: 0 28px 90px rgba(7, 18, 31, 0.26); backdrop-filter: blur(16px); z-index: 999999;' },
+                legend: { type: 'scroll', bottom: 0, icon: 'circle', itemGap: 24, textStyle: { color: '#65738A', fontWeight: 600 } },
+                grid: { top: '12%', left: '0%', right: '2%', bottom: '15%', containLabel: true }
+            };
+            const axX = { type: 'category', axisLine: { lineStyle: { color: 'rgba(101,115,138,0.22)' } }, axisLabel: { color: '#65738A', fontWeight: 600 } };
+            const axY = { type: 'value', splitLine: { show: true, lineStyle: { color: 'rgba(101,115,138,0.16)', type: 'dashed' } }, axisLabel: { color: '#65738A', fontWeight: 600 } };
+
+            businessData.forEach(tab => {
+                tab.kpis.forEach(kpi => {
+                    const sparkDom = document.getElementById(kpi.id);
+                    if(sparkDom && kpi.td) {
+                        const sparkChart = echarts.init(sparkDom);
+                        const themeColor = kpi.s === 'up' ? '#1356D0' : (kpi.s === 'down' ? '#D79000' : '#65738A');
+                        
+                        sparkChart.setOption({
+                            grid: {top: 2, bottom: 0, left: 0, right: 0},
+                            xAxis: {type: 'category', show: false, data: [1, 2, 3, 4, 5, 6, 7]},
+                            yAxis: {type: 'value', show: false, min: 'dataMin'},
+                            tooltip: { 
+                                appendToBody: true, 
+                                trigger: 'axis', 
+                                padding: [8, 12], 
+                                backgroundColor: 'rgba(7,18,31,0.96)', 
+                                borderColor:'rgba(255,255,255,0.14)',
+                                borderWidth: 1,
+                                textStyle: { color: '#F8FAFC' },
+                                extraCssText: 'border-radius: 12px; box-shadow: 0 28px 90px rgba(7,18,31,0.26);',
+                                axisPointer: { type: 'line', lineStyle: { color: 'rgba(19,86,208,0.24)' } },
+                                formatter: function(p) {
+                                    let label = '';
+                                    let idx = p[0].dataIndex;
+                                    if(window.currentGrain === 'day') {
+                                        let mapDay = ['04-11', '04-12', '04-13', '04-14', '04-15', '04-16', '04-17'];
+                                        label = mapDay[idx] + ' (日)';
+                                    } else if(window.currentGrain === 'week') {
+                                        let mapWeek = ['2026-W10', '2026-W11', '2026-W12', '2026-W13', '2026-W14', '2026-W15', '2026-W16'];
+                                        label = mapWeek[idx] + ' (周)';
+                                    } else {
+                                        let mapMonth = ['2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04'];
+                                        label = mapMonth[idx] + ' (月)';
+                                    }
+                                    return `<div style="font-size:12px;color:#7DD3FC;margin-bottom:4px;font-weight:600;">${label}</div>
+                                            <div style="font-size:15px;font-weight:700;color:#FFFFFF;font-family:Inter, sans-serif;">${p[0].value}</div>`;
+                                }
+                            },
+                            series: [{ type: 'line', data: kpi.td.map(v => parseFloat(v).toFixed(1)), smooth: true, symbol: 'none', lineStyle: {width: 2, color: themeColor}, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: themeColor + '15'}, {offset: 1, color: 'rgba(255,255,255,0)'}]) } }]
+                        });
+                        window.MyChartInstances.push({ tabId: tab.id, chart: sparkChart });
+                    }
+                });
+
+                tab.charts.forEach(cfg => {
+                    const dom = document.getElementById(cfg.cid);
+                    if (!dom) return;
+                    const chart = echarts.init(dom);
+                    let opt = {}; const xd = cfg.x || []; const sd = cfg.sd || [];
+
+                    switch(cfg.ty) {
+                        case 'dualAxis':
+                        case 'lineArea': 
+                            opt = { xAxis: { ...axX, data: xd, boundaryGap: false }, yAxis: cfg.ty === 'dualAxis' ? [axY, { ...axY, splitLine: {show:false} }] : axY, series: sd.map((s, i) => ({ name: s.name, type: 'line', smooth: true, symbolSize: 6, data: s.data, yAxisIndex: cfg.ty === 'dualAxis' ? i : 0, lineStyle: { width: 3, color: i === 0 ? '#07121F' : '#1356D0' }, itemStyle: { color: i === 0 ? '#07121F' : '#1356D0' }, areaStyle: i === 0 ? { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'rgba(19,86,208,0.14)'},{offset:1,color:'rgba(19,86,208,0)'}]) } : null })) }; break;
+                        case 'area':
+                            opt = { xAxis: { ...axX, boundaryGap: false, data: xd }, yAxis: axY, series: [{ name: sd[0]?sd[0].name:'', type: 'line', smooth: true, symbol: 'none', data: sd[0]?sd[0].data:[], lineStyle: { width: 3, color: '#1356D0' }, areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'rgba(19,86,208,0.16)'},{offset:1,color:'rgba(19,86,208,0)'}]) } }] }; break;
+                        case 'multiLine':
+                        case 'line':
+                            opt = { xAxis: { ...axX, data: xd }, yAxis: axY, series: sd.map((s, i) => ({ name: s.name, type: 'line', smooth: true, symbolSize: 6, data: s.data, lineStyle: {width: 3, type: i===0?'solid':'dashed'} })) }; break;
+                        case 'bar':
+                            opt = { xAxis: { ...axX, data: xd }, yAxis: axY, series: [{ name: sd[0]?sd[0].name:'', type: 'bar', data: sd[0]?sd[0].data:[], barWidth: '30%', itemStyle: { borderRadius: [6,6,0,0], color: '#1356D0' } }] }; break;
+                        case 'bar_pct': 
+                            let sb = sd[0]?sd[0].data.reduce((a,b)=>a+b, 0):1;
+                            opt = { xAxis: { ...axX, data: xd }, yAxis: axY, tooltip: { appendToBody: true, trigger: 'axis', formatter: p => `${p[0].name}<br/>${p[0].marker} ${p[0].seriesName}: <b>${p[0].value.toLocaleString()}</b> (${((p[0].value/sb)*100).toFixed(1)}%)` }, series: [{ name: sd[0]?sd[0].name:'', type: 'bar', data: sd[0]?sd[0].data:[], barWidth: '35%', label: {show:true, position:'top', color:'#07121F', fontWeight:600, formatter: p=>`${((p.value/sb)*100).toFixed(1)}%`}, itemStyle: { borderRadius: [6,6,0,0], color: '#1356D0' } }] }; break;
+                        case 'barH':
+                        case 'barH_pct': 
+                            let sh = sd[0]?sd[0].data.reduce((a,b)=>a+b, 0):1; let isP = cfg.ty === 'barH_pct';
+                            opt = { xAxis: { ...axY, splitLine: {show:false} }, yAxis: { ...axX, data: xd }, tooltip: isP ? { appendToBody: true, trigger: 'axis', formatter: p => `${p[0].name}<br/>${p[0].marker} ${p[0].seriesName}: <b>${p[0].value.toLocaleString()}</b> (${((p[0].value/sh)*100).toFixed(1)}%)` } : {appendToBody: true, trigger: 'axis'}, series: [{ name: sd[0]?sd[0].name:'', type: 'bar', data: sd[0]?sd[0].data:[], barWidth: '40%', label: {show:true, position:'right', color:'#07121F', fontWeight: 600, formatter: p => isP ? `${((p.value/sh)*100).toFixed(1)}%` : `${p.value.toLocaleString()}`}, itemStyle: { borderRadius: [0,6,6,0], color: '#1356D0' } }] }; break;
+                        case 'barGroup':
+                            opt = { xAxis: { ...axX, data: xd }, yAxis: axY, series: [{ name: sd[0]?sd[0].name:'', type: 'bar', data: sd[0]?sd[0].data:[], barWidth: '25%', itemStyle: { borderRadius: [6,6,0,0], color: '#07121F' } }, { name: sd[1]?sd[1].name:'', type: 'bar', data: sd[1]?sd[1].data:[], barWidth: '25%', itemStyle: { borderRadius: [6,6,0,0], color: '#1356D0' } }] }; break;
+                        case 'stackedArea':
+                            opt = { xAxis: { ...axX, boundaryGap: false, data: xd }, yAxis: axY, series: sd.map((s,i) => ({ name: s.name, type: 'line', stack: 'Total', smooth: true, areaStyle: {opacity:0.1}, showSymbol: false, data: s.data })) }; break;
+                        case 'funnel':
+                            opt = { series: [{ name: '绝对漏斗损耗', type: 'funnel', left: '15%', right: '15%', top: '5%', bottom: '10%', gap: 2, label: { position: 'inside', color: '#fff', fontWeight: 500, formatter: '{b}\n{c}%' }, itemStyle: { borderWidth: 0, borderRadius: 4 }, data: sd }] }; break;
+                        case 'pie':
+                        case 'pie_pct':
+                        case 'pieRose':
+                            opt = { tooltip: { appendToBody: true, trigger: 'item', formatter: '{a} <br/>{b}: <b>{c}</b> ({d}%)' }, legend: { type: 'scroll', bottom: 0, textStyle: {color: '#65738A'} }, series: [{ name: '绝对占比', type: 'pie', radius: cfg.ty==='pieRose' ? ['20%','70%'] : ['45%','70%'], roseType: cfg.ty==='pieRose' ? 'area' : false, label: {show:true, formatter:'{b}\n{d}%', lineHeight:14, color:'#26364D', fontWeight:600}, itemStyle: { borderWidth: 2, borderColor: '#FFFFFF', borderRadius: 6 }, data: sd }] }; break;
+                    }
+                    chart.setOption(Object.assign({}, commonOpt, opt)); window.MyChartInstances.push({ tabId: tab.id, chart: chart });
+                });
+            });
+        }
+
+        window.onload = () => {
+            try {
+                renderApplication();
+                bindGlobalTooltips();
+                initAllECharts();
+                switchTab(businessData[0].id, document.querySelector('.menu-item')); 
+            } catch (e) { 
+                document.body.innerHTML = `<div style="color:red; font-size:24px; padding: 50px;">系统初始化渲染异常，请检查：${e.message}</div>`; 
+            } 
+        };
+        
+        window.addEventListener('resize', () => { const act = document.querySelector('.dashboard-wrapper.active'); if (act && window.MyChartInstances) { window.MyChartInstances.forEach(item => { if (item.tabId === act.id) item.chart.resize(); }); } });
+    </script>
+</body>
+</html>
